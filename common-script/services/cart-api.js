@@ -45,3 +45,13 @@ export async function deleteCart(id) {
     console.log(error);
   }
 }
+
+export async function getVoucher(code) {
+  try {
+    return await restApi({
+      endpoint: `voucher?code=${code}`,
+    });
+  } catch (error) {
+    console.log(error);
+  }
+}

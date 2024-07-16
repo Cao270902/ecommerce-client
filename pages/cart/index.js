@@ -1,10 +1,13 @@
 import {
   deleteCart,
   getCarts,
+  getVoucher,
   updateCart,
 } from "../../common-script/services/cart-api.js";
 import { $, $$ } from "../../common-script/utils.js";
 let carts = [];
+
+let voucher = {};
 
 async function getCartsOnPage() {
   try {
@@ -12,6 +15,7 @@ async function getCartsOnPage() {
       idUser: "abc",
     });
     renderCarts();
+    renderTotalCost();
   } catch (error) {
     console.log(error);
   }
@@ -44,11 +48,39 @@ function renderCarts() {
   });
 
   $$(".delete-cart").forEach((element) => {
-    element.onclick = handleChangeCart;
+    element.onclick = handleDeleteCart;
   });
 }
 
-async function handleChangeCart() {
+function renderTotalCost() {
+  if (carts.length > 0) {
+    const totalCost = getTotalCost();
+
+    const finalCost = (
+      totalCost -
+      totalCost * 0.01 -
+      (voucher.discount || 0) * totalCost
+    ).toFixed(2);
+
+    const totalCostHtml = `<table>
+    <tr>
+      <td>Cart Subtotal</td>
+      <td>$ ${totalCost}</td>
+    </tr>
+    <tr>
+      <td>Shipping</td>
+      <td>Free</td>
+    </tr>
+    <tr>
+      <td><strong>Total</strong></td>
+      <td><strong>$ ${finalCost}</strong></td>
+    </tr>
+  </table>`;
+    $("total-cost").innerHTML = totalCostHtml;
+  }
+}
+
+async function handleDeleteCart() {
   const cartId = this.getAttribute("data-id");
 
   const cartIndex = carts.findIndex((cart) => cart.id === Number(cartId));
@@ -93,6 +125,29 @@ async function handleChangeQuantity() {
   }
 }
 
+async function getVoucherOnPage() {
+  const code = $("voucher").value;
+
+  if (code) {
+    try {
+      const voucherData = await getVoucher(code);
+
+      if (voucherData.length > 0) {
+        voucher = voucherData[0];
+        renderTotalCost();
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  }
+}
+
+function getTotalCost() {
+  return carts.reduce((total, item) => total + item.quantity * item.price, 0);
+}
+
 window.onload = () => {
   getCartsOnPage();
+
+  $("apply-voucher").onclick = getVoucherOnPage;
 };

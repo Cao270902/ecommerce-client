@@ -138,14 +138,25 @@ async function handleAddToCart(e) {
   }
   getCartsOnPage();
 }
-$("search").onchange = function (e) {
+// $("search").onchange = function (e) {
+//   params = {
+//     ...params,
+//     title_like: e.target.value.trim(),
+//     page: 1,
+//   };
+//   getProductsOnPage();
+// };
+
+$("search").oninput = debounce(handleSearch, 2000);
+
+function handleSearch(e) {
   params = {
     ...params,
     title_like: e.target.value.trim(),
     page: 1,
   };
   getProductsOnPage();
-};
+}
 
 async function getCartsOnPage() {
   try {
@@ -161,3 +172,14 @@ window.onload = () => {
   getProductsOnPage();
   getCartsOnPage();
 };
+
+function debounce(func, delay) {
+  let timeout;
+
+  return function (...arg) {
+    clearTimeout(timeout);
+    timeout = setTimeout(() => {
+      func.apply(this, arg);
+    }, delay);
+  };
+}
